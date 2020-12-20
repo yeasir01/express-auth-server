@@ -10,14 +10,14 @@ module.exports = {
             if (errors.isEmpty()) {
                 next()
             } else {
-                let debugData = JSON.stringify(errors.array());
-                res.status(422).json({success: false, errors: errors.array()});
 
-                log({
+                res.status(422).json({success: false, errors: errors.array()});
+                
+                return log({
                     level: 'warning',
                     source: './middleware/validation.js',
-                    description: 'Failed to validate/sanatize client request.',
-                    debug: debugData,
+                    description: 'Failed to validate or sanatize client request.',
+                    debug: errors.array(),
                     user: req.body.email || 'anonymous',
                     geoLocation: req.body.geoLocation
                 });
@@ -27,7 +27,7 @@ module.exports = {
 
             res.status(422).json({success: false, msg: "Server validation failed. Error logged."});
 
-            log({
+            return log({
                 level: 'error',
                 source: './middleware/validation.js',
                 description: 'Validate funtion threw an error.',
@@ -35,13 +35,13 @@ module.exports = {
             });
         }
     },
-    loginSchema: () =>{
+    loginSchema: () => {
         return [
             body('email').isEmail().withMessage('Invalid email format.'),
             body('password').isLength({min: 8}).withMessage('Password must contain at least 8 characters.')
         ]
     },
-    regSchema: () =>{
+    regSchema: () => {
         return [
             body('email').isEmail().withMessage('Invalid email format'),
             body('password').isLength({min: 8}).withMessage('Password must contain at least 8 characters.'),

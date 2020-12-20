@@ -64,15 +64,15 @@ module.exports = {
                     return res.json({success: false, msg: "That account already exists, please use forgot password to recover."});
                 }
 
-                let newUser = new User({
+                let new_user = new User({
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
                     email: req.body.email,
                     password: req.body.password,
-                    geoLocation: req.body.geoLocation
+                    geoLocation: JSON.stringify(req.body.geoLocation)
                 })
 
-                newUser.save(function (err, user) {
+                new_user.save( (err, user) => {
                     if (err) throw err;
 
                     res.status(201).json({success: true, msg: 'User sucessfully created'});
