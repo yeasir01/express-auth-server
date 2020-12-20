@@ -14,7 +14,7 @@ const EventSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    error: {
+    debug: {
         type: String,
         required: false
     },
@@ -22,9 +22,14 @@ const EventSchema = mongoose.Schema({
         type: String,
         default: 'system',
         required: true
+    },
+    geoLocation: {
+        type: String
+    },
+    createdAt: {
+        type: Date,
+        default: new Date()
     }
-},{
-    timestamps: true
 });
 
 module.exports = mongoose.model('Event', EventSchema);

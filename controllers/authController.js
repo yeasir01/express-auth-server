@@ -5,6 +5,7 @@ module.exports = {
     login: (req, res) => {
         User.findOne({email: req.body.email}).select('+password')
             .then( user => {
+                
                 if (!user) {
                     return res.status(401).json({success: false, msg: "Invalid credentials"});
                 }
@@ -14,33 +15,53 @@ module.exports = {
                 }
 
                 user.comparePassword(req.body.password, (err, isMatch) => {
-                    if (err) throw err;
                     
+                    if (err) throw err;
+
                     if (isMatch) {
                         res.status(200).json({success: true, msg: "Awsome thats a match!"});
+
+                        return log({
+                            level: "info",
+                            source: "./controller/authController.js",
+                            description: "Sucessful login",
+                            user: user.email,
+                            geoLocation: req.body.geoLocation
+                        });
+
                     }
-                    
-                    return res.status(401).json({success: false, msg: "Invalid credentials"});
+                        res.status(401).json({success: false, msg: "Invalid credentials"});
+
+                        return log({
+                            level: "warning",
+                            source: "./controller/authController.js",
+                            description: "Unsuccessful login attempt.",
+                            user: user.email,
+                            geoLocation: req.body.geoLocation
+                        });
+
                 })
             })
-            .catch( err => {
+            .catch( e => {
 
-                res.status(500).json({success: false, message: "Internal server issue"})
+                res.status(500).json({success: false, msg: "Internal server issue"})
 
                 log({
                     level: "error",
-                    source: "authController.js",
-                    description: "Failed at login",
+                    source: "./controller/authController.js",
+                    description: "Login attempt threw an error.",
                     user: req.body.email,
-                    error: err
+                    geoLocation: req.body.geoLocation,
+                    debug: e
                 });
             })
     },
-    register: (req, res)=>{
+    register: (req, res) => {
         User.findOne({email: req.body.email})
             .then( result => {
+                
                 if (result) {
-                    return res.json({success: false, msg: "That email already exists, please use forgot password to recover"});
+                    return res.json({success: false, msg: "That account already exists, please use forgot password to recover."});
                 }
 
                 let newUser = new User({
@@ -54,20 +75,28 @@ module.exports = {
                 newUser.save(function (err, user) {
                     if (err) throw err;
 
-                    res.status(201).json({success: true, msg: 'User sucessfully created'})
+                    res.status(201).json({success: true, msg: 'User sucessfully created'});
+                    
+                    return log({
+                        level: "info",
+                        source: "./controllers/authController.js",
+                        description: "New user created.",
+                        user: user.email,
+                        geoLocation: user.geoLocation
+                    });
                 })
     
             })
-            .catch( err => {
+            .catch( e => {
 
-                res.status(422).json({success: false, message: "Unable to process your request at this time."})
+                res.status(422).json({success: false, msg: "Unable to process your request at this time."})
 
                 log({
                     level: "error",
-                    source: "authController.js",
-                    description: "Failed at registration",
+                    source: "./controllers/authController.js",
+                    description: "Registration attempt threw an error.",
                     user: req.body.email,
-                    error: err
+                    debug: e
                 });
             })
 

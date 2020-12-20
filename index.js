@@ -35,7 +35,7 @@ app.listen(PORT, () => {
     
     production && log({
         level: "info",
-        source: "index.js",
-        description: "server started"
+        source: "./index.js",
+        description: "Server started."
     });
 });
