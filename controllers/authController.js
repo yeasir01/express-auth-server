@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const log = require('../middleware/log');
+const { issueJWT } = require('../utils/jwtHelper');
 
 module.exports = {
     login: (req, res) => {
@@ -7,11 +8,27 @@ module.exports = {
             .then( user => {
                 
                 if (!user) {
-                    return res.status(401).json({success: false, msg: "Invalid credentials"});
+                    res.status(401).json({
+                        success: false,
+                        errors: [{
+                            code: 401,
+                            msg: "Invalid credentials."
+                        }]
+                    });
+
+                    return;
                 }
 
                 if (!user.isActive) {
-                    return res.status(400).json({success: false, msg: "This account has been marked inactive"});
+                    res.status(400).json({
+                        success: false,
+                        errors: [{
+                            code: 400,
+                            msg: "This account has been marked inactive, please contact support."
+                        }]
+                    });
+
+                    return;
                 }
 
                 user.comparePassword(req.body.password, (err, isMatch) => {
@@ -19,9 +36,40 @@ module.exports = {
                     if (err) throw err;
 
                     if (isMatch) {
-                        res.status(200).json({success: true, msg: "Awsome thats a match!"});
+                        
+                        issueJWT(user)
+                            .then( tokens => {
 
-                        return log({
+                                res.status(200).json({
+                                    success: true,
+                                    access_token: tokens.access_token,
+                                    refresh_token: tokens.refresh_token
+                                });
+
+                            })
+                            .catch(e => {
+                                res.status(422).json({
+                                    success: false,
+                                    errors: [{
+                                        code: 422,
+                                        msg: "Unable to process your request at this time."
+                                    }]
+                                });
+
+                                log({
+                                    level: "error",
+                                    source: "./controller/authController.js",
+                                    description: "An error was thrown while attepting to issue tokens at login",
+                                    user: user.email,
+                                    geoLocation: req.body.geoLocation,
+                                    debug: e
+                                });
+
+                                return;
+                            })
+
+
+                        log({
                             level: "info",
                             source: "./controller/authController.js",
                             description: "Sucessful login",
@@ -29,31 +77,48 @@ module.exports = {
                             geoLocation: req.body.geoLocation
                         });
 
-                    }
-                        res.status(401).json({success: false, msg: "Invalid credentials"});
+                        return;
+                    };
+                        
+                    res.status(401).json({
+                        success: false,
+                        errors: [{
+                            code: 401,
+                            msg: "Invalid credentials."
+                        }]
+                    });
 
-                        return log({
-                            level: "warning",
-                            source: "./controller/authController.js",
-                            description: "Unsuccessful login attempt.",
-                            user: user.email,
-                            geoLocation: req.body.geoLocation
-                        });
+                    log({
+                        level: "warning",
+                        source: "./controller/authController.js",
+                        description: "Unsuccessful login attempt.",
+                        user: user.email,
+                        geoLocation: req.body.geoLocation
+                    });
 
+                    return;
                 })
             })
             .catch( e => {
 
-                res.status(500).json({success: false, msg: "Internal server issue"})
+                res.status(422).json({
+                    success: false,
+                    errors: [{
+                        code: 422,
+                        msg: "Unable to process your request at this time."
+                    }]
+                });
 
                 log({
                     level: "error",
                     source: "./controller/authController.js",
-                    description: "Login attempt threw an error.",
+                    description: "Login function threw an error.",
                     user: req.body.email,
                     geoLocation: req.body.geoLocation,
                     debug: e
                 });
+
+                return;
             })
     },
     register: (req, res) => {
@@ -61,7 +126,16 @@ module.exports = {
             .then( result => {
                 
                 if (result) {
-                    return res.json({success: false, msg: "That account already exists, please use forgot password to recover."});
+                    
+                    res.status(409).json({
+                        success: false,
+                        errors: [{
+                            code: 409,
+                            msg: "That email already exists! Please use password recovery option."
+                        }]
+                    });
+
+                    return;
                 }
 
                 let new_user = new User({
@@ -77,24 +151,32 @@ module.exports = {
 
                     res.status(201).json({success: true, msg: 'User sucessfully created'});
                     
-                    return log({
+                    log({
                         level: "info",
                         source: "./controllers/authController.js",
                         description: "New user created.",
                         user: user.email,
                         geoLocation: user.geoLocation
                     });
+
+                    return;
                 })
     
             })
-            .catch( e => {
+            .catch(e => {
 
-                res.status(422).json({success: false, msg: "Unable to process your request at this time."})
+                res.status(422).json({
+                    success: false,
+                    errors: [{
+                        code: 422,
+                        msg: "Unable to process your request at this time."
+                    }]
+                });
 
                 log({
                     level: "error",
                     source: "./controllers/authController.js",
-                    description: "Registration attempt threw an error.",
+                    description: "Register function threw an error.",
                     user: req.body.email,
                     debug: e
                 });

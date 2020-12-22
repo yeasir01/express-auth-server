@@ -13,26 +13,30 @@ module.exports = {
 
                 res.status(422).json({success: false, errors: errors.array()});
                 
-                return log({
+                log({
                     level: 'warning',
                     source: './middleware/validation.js',
-                    description: 'Failed to validate or sanatize client request.',
+                    description: 'Client validation failed.',
                     debug: errors.array(),
                     user: req.body.email || 'anonymous',
                     geoLocation: req.body.geoLocation
                 });
+
+                return;
             }
 
         } catch (e) {
 
             res.status(422).json({success: false, msg: "Server validation failed. Error logged."});
 
-            return log({
+            log({
                 level: 'error',
                 source: './middleware/validation.js',
                 description: 'Validate funtion threw an error.',
                 debug: e
             });
+
+            return;
         }
     },
     loginSchema: () => {

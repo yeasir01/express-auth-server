@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
 const morgan = require('morgan');
 const log = require('./middleware/log');
 
@@ -27,6 +28,7 @@ mongoose.connect(MONGO_URL, MONGO_OPT)
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(helmet());
 
 app.use("/api/auth", require("./routes/api/auth.js"));
 
