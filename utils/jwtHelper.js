@@ -10,7 +10,7 @@ module.exports = {
         return new Promise ((resolve, reject) => {
             try {
 
-                const jwtPrivateKey = fs.readFileSync(path.resolve(__dirname ,"../config/jwt_private.pem"), {encoding:'utf8'});
+                const accessPrivateKey = fs.readFileSync(path.resolve(__dirname ,"../config/access_private.pem"), {encoding:'utf8'});
                 const refreshPrivateKey = fs.readFileSync(path.resolve(__dirname ,"../config/refresh_private.pem"), {encoding:'utf8'});
                 const issuedAt = Math.floor(Date.now() / 1000);
                 
@@ -35,7 +35,7 @@ module.exports = {
                     expiresIn: process.env.REFRESH_EXPIRES_IN
                 };
         
-                const access_token = JWT.sign(accessPayload, jwtPrivateKey, accessOpt);
+                const access_token = JWT.sign(accessPayload, accessPrivateKey, accessOpt);
                 const refresh_token = JWT.sign(refreshPayload, refreshPrivateKey, refreshOpt);
             
                 resolve({
@@ -50,6 +50,8 @@ module.exports = {
     },    
     verifyRefreshJWT: token => {
         return new Promise((resolve, reject) => {
+
+            const refreshPublicKey = fs.readFileSync(path.resolve(__dirname ,"../public/rsa/refresh_public.pem"), {encoding:'utf8'});
             
             const opt = {
                 audience: 'http://www.resource-server-url.com',
@@ -57,7 +59,7 @@ module.exports = {
                 algorithms: ['RS256']
             };
 
-            JWT.verify(token, process.env.REFRESH_PUBLIC_KEY, opt, (err, decoded) => {
+            JWT.verify(token, refreshPublicKey, opt, (err, decoded) => {
                 if (err) reject(err)
 
                 const user = {

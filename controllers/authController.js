@@ -38,12 +38,20 @@ module.exports = {
                     if (isMatch) {
                         
                         issueJWT(user)
-                            .then( tokens => {
+                            .then(tokens => {
 
                                 res.status(200).json({
                                     success: true,
                                     access_token: tokens.access_token,
                                     refresh_token: tokens.refresh_token
+                                });
+
+                                log({
+                                    level: "info",
+                                    source: "./controller/authController.js",
+                                    description: "Sucessful login",
+                                    user: user.email,
+                                    geoLocation: req.body.geoLocation
                                 });
 
                             })
@@ -68,15 +76,6 @@ module.exports = {
                                 return;
                             })
 
-
-                        log({
-                            level: "info",
-                            source: "./controller/authController.js",
-                            description: "Sucessful login",
-                            user: user.email,
-                            geoLocation: req.body.geoLocation
-                        });
-
                         return;
                     };
                         
@@ -99,7 +98,7 @@ module.exports = {
                     return;
                 })
             })
-            .catch( e => {
+            .catch(e => {
 
                 res.status(422).json({
                     success: false,
@@ -181,6 +180,9 @@ module.exports = {
                     debug: e
                 });
             })
+
+    },
+    refresh: (req, res) => {
 
     }
 }

@@ -1,5 +1,5 @@
 const Router = require('express').Router();
-const {login, register} = require('../../controllers/authController');
+const {login, register, refresh} = require('../../controllers/authController');
 const {loginSchema, regSchema, tokenSchema, validate} = require('../../middleware/validation');
 
 Router.route('/login')
@@ -20,10 +20,10 @@ Router.route('/profile')
     // @access Private
     .get();
 
-Router.route('/refresh-token')
+Router.route('/refresh')
     // @route  POST api/auth/refresh-token
     // @desc   POST Refresh access token
     // @access Public
-    .post();
+    .post(tokenSchema(), validate, refresh);
 
 module.exports = Router;
