@@ -18,7 +18,7 @@ module.exports = {
                     source: './middleware/validation.js',
                     description: 'Client validation failed.',
                     debug: errors.array(),
-                    user: req.body.email || 'anonymous',
+                    user: req.body.email || 'unkown',
                     geoLocation: req.body.geoLocation
                 });
 
@@ -27,7 +27,13 @@ module.exports = {
 
         } catch (e) {
 
-            res.status(422).json({success: false, msg: "Server validation failed. Error logged."});
+            res.status(422).json({
+                success: false,
+                errors: [{
+                    status: 422,
+                    msg: "Unable to validate client request, please try again later."
+                }]
+            });
 
             log({
                 level: 'error',

@@ -2,10 +2,7 @@ const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 
-module.exports = {
-    verifyJWT: user => {
-        
-    },    
+module.exports = {    
     issueJWT: user => {
         return new Promise ((resolve, reject) => {
             try {
@@ -14,15 +11,10 @@ module.exports = {
                 const refreshPrivateKey = fs.readFileSync(path.resolve(__dirname ,"../config/refresh_private.pem"), {encoding:'utf8'});
                 const issuedAt = Math.floor(Date.now() / 1000);
                 
-                const accessPayload = {
+                const payload = {
                     iat: issuedAt,
                     sub: user._id,
                     role: user.role
-                };
-
-                const refreshPayload = {
-                    iat: issuedAt,
-                    sub: user._id
                 };
 
                 const accessOpt = {
@@ -35,8 +27,8 @@ module.exports = {
                     expiresIn: process.env.REFRESH_EXPIRES_IN
                 };
         
-                const access_token = JWT.sign(accessPayload, accessPrivateKey, accessOpt);
-                const refresh_token = JWT.sign(refreshPayload, refreshPrivateKey, refreshOpt);
+                const access_token = JWT.sign(payload, accessPrivateKey, accessOpt);
+                const refresh_token = JWT.sign(payload, refreshPrivateKey, refreshOpt);
             
                 resolve({
                     access_token, 
@@ -48,14 +40,14 @@ module.exports = {
             }
         })
     },    
-    verifyRefreshJWT: token => {
+    verifyRefreshToken: token => {
         return new Promise((resolve, reject) => {
 
             const refreshPublicKey = fs.readFileSync(path.resolve(__dirname ,"../public/rsa/refresh_public.pem"), {encoding:'utf8'});
             
             const opt = {
-                audience: 'http://www.resource-server-url.com',
-                issuer: '',
+/*                 audience: 'http://www.resource-server-url.com',
+                issuer: '', */
                 algorithms: ['RS256']
             };
 
@@ -63,7 +55,8 @@ module.exports = {
                 if (err) reject(err)
 
                 const user = {
-                    id: decoded.sub
+                    _id: decoded.sub,
+                    role: decoded.role
                 }
 
                 resolve(user)
