@@ -219,6 +219,6 @@ module.exports = {
             })
     },
     test: (req, res)=>{
-        return res.status(200).json({msg:"cool beans", user: req.user})
+        return res.status(200).json({msg:"That worked, heres your user data.", user: req.user})
     }
 }
