@@ -31,8 +31,8 @@ app.use(express.json());
 app.use(helmet());
 
 app.use(express.static('public'));
-app.use("/api/auth", require("./routes/api/auth.js"));
-app.use("/", require("./routes/static/views.js"));
+app.use("/api/auth", require("./routes/api/auth"));
+app.use("/", require("./routes/static/views"));
 
 app.listen(PORT, () => {
     console.log(`Server listening at http://localhost:${PORT}`)

@@ -1,9 +1,10 @@
 const User = require('../models/User');
 const log = require('../middleware/log');
-const { issueJWT } = require('../utils/jwtHelper');
+const { issueJWT, verifyRefreshToken } = require('../utils/jwtHelper');
 
 module.exports = {
     login: (req, res) => {
+
         User.findOne({email: req.body.email}).select('+password')
             .then( user => {
                 
@@ -11,7 +12,7 @@ module.exports = {
                     res.status(401).json({
                         success: false,
                         errors: [{
-                            code: 401,
+                            status: 401,
                             msg: "Invalid credentials."
                         }]
                     });
@@ -23,7 +24,7 @@ module.exports = {
                     res.status(400).json({
                         success: false,
                         errors: [{
-                            code: 400,
+                            status: 400,
                             msg: "This account has been marked inactive, please contact support."
                         }]
                     });
@@ -59,7 +60,7 @@ module.exports = {
                                 res.status(422).json({
                                     success: false,
                                     errors: [{
-                                        code: 422,
+                                        status: 422,
                                         msg: "Unable to process your request at this time."
                                     }]
                                 });
@@ -82,7 +83,7 @@ module.exports = {
                     res.status(401).json({
                         success: false,
                         errors: [{
-                            code: 401,
+                            status: 401,
                             msg: "Invalid credentials."
                         }]
                     });
@@ -103,7 +104,7 @@ module.exports = {
                 res.status(422).json({
                     success: false,
                     errors: [{
-                        code: 422,
+                        status: 422,
                         msg: "Unable to process your request at this time."
                     }]
                 });
@@ -129,8 +130,8 @@ module.exports = {
                     res.status(409).json({
                         success: false,
                         errors: [{
-                            code: 409,
-                            msg: "That email already exists! Please use password recovery option."
+                            status: 409,
+                            msg: "That email already exists! please use password recovery option."
                         }]
                     });
 
@@ -167,7 +168,7 @@ module.exports = {
                 res.status(422).json({
                     success: false,
                     errors: [{
-                        code: 422,
+                        status: 422,
                         msg: "Unable to process your request at this time."
                     }]
                 });
@@ -183,6 +184,41 @@ module.exports = {
 
     },
     refresh: (req, res) => {
+        const refreshToken = req.body.token;
 
+        verifyRefreshToken(refreshToken)
+            .then(user => {
+                issueJWT(user)
+                    .then(tokens => {
+
+                        res.status(200).json({
+                            success: true,
+                            access_token: tokens.access_token,
+                            refresh_token: tokens.refresh_token
+                        });
+
+                    })
+            })
+            .catch(e => {
+
+                res.status(403).json({
+                    success: false,
+                    errors: [{
+                        status: 403,
+                        msg: "Invalid refresh token."
+                    }]
+                });
+
+                log({
+                    level: "warning",
+                    source: "./controllers/authController.js",
+                    description: "An error was thrown while attempting to issue new tokens.",
+                    user: 'unkown',
+                    debug: e
+                });
+            })
+    },
+    test: (req, res)=>{
+        return res.status(200).json({msg:"cool beans", user: req.user})
     }
 }

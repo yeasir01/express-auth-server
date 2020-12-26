@@ -1,6 +1,7 @@
 const Router = require('express').Router();
-const {login, register, refresh} = require('../../controllers/authController');
+const {login, register, refresh, test} = require('../../controllers/authController');
 const {loginSchema, regSchema, tokenSchema, validate} = require('../../middleware/validation');
+const checkAuthorization = require('../../middleware/authorize');
 
 Router.route('/login')
     // @route  POST api/auth/login
@@ -18,7 +19,7 @@ Router.route('/profile')
     // @route  GET api/auth/profile
     // @desc   GET User profile data
     // @access Private
-    .get();
+    .get(checkAuthorization, test);
 
 Router.route('/refresh')
     // @route  POST api/auth/refresh-token
