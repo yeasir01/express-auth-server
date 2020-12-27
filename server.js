@@ -42,4 +42,6 @@ app.listen(PORT, () => {
         source: "./index.js",
         description: "Server started."
     });
+    
+    return;
 });

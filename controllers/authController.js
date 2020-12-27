@@ -4,7 +4,7 @@ const { issueJWT, verifyRefreshToken } = require('../utils/jwtHelper');
 
 module.exports = {
     login: (req, res) => {
-
+        
         User.findOne({email: req.body.email}).select('+password')
             .then( user => {
                 
@@ -12,7 +12,6 @@ module.exports = {
                     res.status(401).json({
                         success: false,
                         errors: [{
-                            status: 401,
                             msg: "Invalid credentials."
                         }]
                     });
@@ -24,7 +23,6 @@ module.exports = {
                     res.status(400).json({
                         success: false,
                         errors: [{
-                            status: 400,
                             msg: "This account has been marked inactive, please contact support."
                         }]
                     });
@@ -55,12 +53,13 @@ module.exports = {
                                     geoLocation: req.body.geoLocation
                                 });
 
+                                return;
+
                             })
                             .catch(e => {
                                 res.status(422).json({
                                     success: false,
                                     errors: [{
-                                        status: 422,
                                         msg: "Unable to process your request at this time."
                                     }]
                                 });
@@ -83,7 +82,6 @@ module.exports = {
                     res.status(401).json({
                         success: false,
                         errors: [{
-                            status: 401,
                             msg: "Invalid credentials."
                         }]
                     });
@@ -104,7 +102,6 @@ module.exports = {
                 res.status(422).json({
                     success: false,
                     errors: [{
-                        status: 422,
                         msg: "Unable to process your request at this time."
                     }]
                 });
@@ -130,7 +127,6 @@ module.exports = {
                     res.status(409).json({
                         success: false,
                         errors: [{
-                            status: 409,
                             msg: "That email already exists! please use password recovery option."
                         }]
                     });
@@ -168,7 +164,6 @@ module.exports = {
                 res.status(422).json({
                     success: false,
                     errors: [{
-                        status: 422,
                         msg: "Unable to process your request at this time."
                     }]
                 });
@@ -204,7 +199,6 @@ module.exports = {
                 res.status(403).json({
                     success: false,
                     errors: [{
-                        status: 403,
                         msg: "Invalid refresh token."
                     }]
                 });

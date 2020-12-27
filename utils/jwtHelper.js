@@ -13,18 +13,17 @@ module.exports = {
                 
                 const payload = {
                     iat: issuedAt,
-                    sub: user._id,
-                    role: user.role
+                    sub: user._id
                 };
 
                 const accessOpt = {
-                    algorithm: 'RS256',
-                    expiresIn: process.env.JWT_EXPIRES_IN
+                    algorithm: "RS256",
+                    expiresIn: "15m"
                 };
                 
                 const refreshOpt = {
                     algorithm: 'RS256',
-                    expiresIn: process.env.REFRESH_EXPIRES_IN
+                    expiresIn: "30d"
                 };
         
                 const access_token = JWT.sign(payload, accessPrivateKey, accessOpt);
@@ -55,8 +54,7 @@ module.exports = {
                 if (err) reject(err)
 
                 const user = {
-                    _id: decoded.sub,
-                    role: decoded.role
+                    _id: decoded.sub
                 }
 
                 resolve(user)

@@ -2,10 +2,11 @@
   "name": "express-auth-server",
   "version": "1.0.0",
   "description": "an authentication server written in nodeJS.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "rsa": "node ./utils/genPPK.js"
   },
   "author": "Yeasir H.",
   "license": "MIT",
