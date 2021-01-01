@@ -1,9 +1,10 @@
+"use strict";
+
 const path = require('path');
 const router = require('express').Router();
 
 router.get('/favicon.ico', function(req, res) { 
-    res.status(204);
-    res.end();    
+    res.status(204).end();    
 });
 
 router.get('/robots.txt', function (req, res) {

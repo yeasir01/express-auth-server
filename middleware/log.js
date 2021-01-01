@@ -1,10 +1,11 @@
-const Event = require('../models/Event');
+"use strict";
+
+const Event = require('../models/event');
 
 module.exports = (obj) => {
     
     try {
-        
-        if (typeof obj != "object") {
+        if (typeof obj !== "object") {
             throw new Error('You may only log events as an object.')
         } else if (!obj.level || !obj.source || !obj.description) {
             throw new Error('Event must contain a level, source and description.')
@@ -23,7 +24,7 @@ module.exports = (obj) => {
             });
         }
     } catch (e) {
-        console.error(e);
+        console.log(e);
     };
 
 };

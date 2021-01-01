@@ -1,5 +1,6 @@
+"use strict";
+
 const { validationResult, body } = require('express-validator');
-const log = require('./log');
 
 module.exports = {
     validate: (req, res, next) => {
@@ -8,44 +9,23 @@ module.exports = {
             let errors = validationResult(req);
     
             if (errors.isEmpty()) {
-                next()
+                return next()
             } else {
-
-                res.status(422).json({success: false, errors: errors.array()});
-                
-                log({
-                    level: 'warning',
-                    source: './middleware/validation.js',
-                    description: 'Client validation failed.',
-                    debug: errors.array(),
-                    user: req.body.email || 'unkown',
-                    geoLocation: req.body.geoLocation
-                });
-
-                return;
+                return res.status(422).json({success: false, errors: errors.array()});
             }
 
         } catch (e) {
 
-            res.status(422).json({
+            return res.status(422).json({
                 success: false,
                 errors: [{
                     status: 422,
                     msg: "Unable to validate client request, please try again later."
                 }]
             });
-
-            log({
-                level: 'error',
-                source: './middleware/validation.js',
-                description: 'Validate funtion threw an error.',
-                debug: e
-            });
-
-            return;
         }
     },
-    loginSchema: () => {
+    logSchema: () => {
         return [
             body('email').isEmail().withMessage('Invalid email format.'),
             body('password').isLength({min: 8}).withMessage('Password must contain at least 8 characters.')
@@ -58,10 +38,5 @@ module.exports = {
             body('firstName').trim().isLength({min: 3}).escape(),
             body('lastName').trim().isLength({min: 3}).escape(),
         ]
-    },
-    tokenSchema: () => {
-        return [
-            body('token').isJWT().withMessage('Invalid token format.')
-        ]
-    },
+    }
 }

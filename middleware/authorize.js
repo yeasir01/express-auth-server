@@ -1,87 +1,64 @@
+"use strict";
+
 const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
-const log = require('./log');
+
+//black list all old token when generating new ones.
 
 module.exports = (req, res, next) => {
-    const accessPublicKey = fs.readFileSync(path.resolve(__dirname, "../public/rsa/access_public.pem"), {
-        encoding: 'utf8'
-    });
-    const authHeader = req.headers['authorization'];
+    const keyPath = path.resolve(__dirname, "../public/rsa/access_public.pem");
+    const publicKey = fs.readFileSync(keyPath, 'utf8');
+    const accessCookie = req.cookies.access_token;
     const tokenBody = req.body.token;
 
     const opt = {
-        /*  audience: 'http://www.resource-server-url.com',
-         issuer: '', */
-        algorithms: ['RS256']
+        audience: process.env.AUDIENCE,
+        issuer: process.env.ISSUER,
+        algorithms: ["RS256"]
     };
-
-    if (authHeader) {
-        const tokenArray = authHeader.split(' ');
-        const tokenHeader = tokenArray[1];
-
-        JWT.verify(tokenHeader, accessPublicKey, opt, (err, decoded) => {
-
+ 
+    if (accessCookie) {
+        JWT.verify(accessCookie, publicKey, opt, (err, decoded) => {
             if (err) {
+                console.log(err)
+
                 res.status(403).json({
                     success: false,
                     errors: [{
                         status: 403,
-                        msg: "Invalid token."
+                        msg: "Invalid or expired token."
                     }]
                 });
-
-                log({
-                    level: "warning",
-                    source: "./middleware/authorize.js",
-                    description: "Invalid access token in header.",
-                    user: req.body.email,
-                    geoLocation: req.body.geoLocation,
-                    debug: err
-                });
-
-                return;
-
             } else {
                 req.user = decoded;
-                return next()
+                next()
             }
         })
+    } else if (!accessCookie && tokenBody) {
+        JWT.verify(tokenBody, publicKey, opt, (err, decoded) => {
+            if (err) {
+                console.log(err)
 
+                res.status(403).json({
+                    success: false,
+                    errors: [{
+                        status: 403,
+                        msg: "Invalid or expired token."
+                    }]
+                });
+            } else {
+                req.user = decoded;
+                next()
+            }
+        })
     } else {
-
-        JWT.verify(tokenBody, accessPublicKey, opt, (err, decoded) => {
-
-            if (err) {
-                res.status(403).json({
-                    success: false,
-                    errors: [{
-                        status: 403,
-                        msg: "Invalid token."
-                    }]
-                });
-
-                log({
-                    level: "warning",
-                    source: "./middleware/authorize.js",
-                    description: "Invalid access token in body.",
-                    user: req.body.email,
-                    geoLocation: req.body.geoLocation,
-                    debug: err
-                });
-
-                return;
-
-            } else {
-                req.user = decoded;
-                return next()
-            }
-        })
+        res.status(422).json({
+            success: false,
+            errors: [{
+                status: 422,
+                msg: "Invalid or missing access token."
+            }]
+        });
     }
 };
-
-//TODO
-// SET COOKIES FIRST
-//check browser type
-//if web browser, then check cookies for Bearer access token
-//else check body for access token

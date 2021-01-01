@@ -1,9 +1,11 @@
+"use strict";
+
 const { generateKeyPair } = require('crypto');
 const path = require('path');
 const fs = require('fs');
 
 const opt = {
-  modulusLength: 4096,
+  modulusLength: 2048,
   publicKeyEncoding: {
     type: 'pkcs1',
     format: 'pem'
