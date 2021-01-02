@@ -4,7 +4,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const log = require('./middleware/log');
 const cookieParser = require('cookie-parser');
 
 const app = express();
@@ -39,11 +38,5 @@ app.use("/api/auth", require("./routes/api/auth"));
 app.use("/", require("./routes/static/views"));
 
 app.listen(PORT, () => {
-    production && log({
-        level: "info",
-        source: "./index.js",
-        description: "Server started."
-    });
-
     console.log(`Server listening at http://localhost:${PORT}`)
 });

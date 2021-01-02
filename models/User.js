@@ -22,18 +22,19 @@ const UserSchema = mongoose.Schema({
         required: true,
         select: false
     },
-    role: {
-        type: String,
-        enum: ['admin', 'user', 'manager'],
-        default: 'user'
-    },
     resetToken: {
         type: String,
-        required: false
+        required: false,
+        select: false
     },
     geoLocation: {
         type: String,
         required: false
+    },
+    emailVerifed: {
+        type: Boolean,
+        required: true,
+        default: false
     },
     isActive: {
         type: Boolean,
@@ -64,8 +65,8 @@ UserSchema.pre('save', function(next) {
 
 UserSchema.methods.comparePassword = function(userPassword, cb) {
     bcrypt.compare(userPassword, this.password, function(err, isMatch) {
-        if (err) return cb(err, false);
-        cb(null, isMatch);
+        if (err) cb(err, false);
+        return cb(null, isMatch);
     });
 };
 

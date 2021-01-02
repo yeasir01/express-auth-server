@@ -8,13 +8,22 @@ const fs = require('fs');
 module.exports = {
     login: async (req, res, next) => {
         try {
-            const user = await User.findOne({email: req.body.email}).select('+password');
+            let user = await User.findOne({email: req.body.email}).select('+password');
 
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     errors: [{
                         msg: "Invalid credentials."
+                    }]
+                });
+            }
+
+            if (!user.emailVerifed) {
+                return res.status(400).json({
+                    success: false,
+                    errors: [{
+                        msg: "Your email must be verified before you can sign in."
                     }]
                 });
             }
@@ -32,8 +41,8 @@ module.exports = {
                 if (err) throw err;
 
                 if (isMatch) {
+                    user.password = undefined;
                     req.user = user;
-                    req.user.password = undefined;
                     return next();
                 }
 
@@ -59,7 +68,7 @@ module.exports = {
     },
     register: async (req, res, next) => {
         try {
-            const user = await User.findOne({email: req.body.email});
+            let user = await User.findOne({email: req.body.email});
 
             if (user) {
                 return res.status(409).json({
@@ -70,15 +79,16 @@ module.exports = {
                     }]
                 });
             } else {
-                const new_user = new User({
+                let new_user = new User({
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
                     email: req.body.email,
                     password: req.body.password
                 })
-                const user = await new_user.save();
-                req.user = user;
 
+                let user = await new_user.save();
+                
+                req.user = user;
                 return next();
             }
         } catch (e) {
@@ -92,11 +102,11 @@ module.exports = {
             });
         }
     },
-    refresh: (req, res, next) => {
+    verifyRefresh: (req, res, next) => {
         try {
-            const pkcPath = path.resolve(__dirname, "../public/rsa/refresh_public.pem");
-            const pkc = fs.readFileSync(pkcPath, 'utf8');
-            const refreshToken = req.cookies.refresh_token;
+            let pkcPath = path.resolve(__dirname, "../public/rsa/refresh_public.pem");
+            let pkc = fs.readFileSync(pkcPath, 'utf8');
+            let refreshToken = req.cookies.refresh_token;
             
             if (!refreshToken) {
                 return res.status(422).json({
@@ -107,17 +117,21 @@ module.exports = {
                 });
             }
 
-            const opt = {
+            let opt = {
                 aud: process.env.AUDIENCE,
                 iss: process.env.ISSUER,
                 algorithms: ["RS256"]
             };
             
-            JWT.verify(refreshToken, pkc, opt, (err, decoded) => {
+            JWT.verify(refreshToken, pkc, opt, async (err, decoded) => {
                 if (err) throw err
 
                 if (decoded) {
-                    req.user = {_id: decoded.sub}
+                    let user = await User.findOne({_id: decoded.sub});
+
+                    if (!user) throw new Error('There was no user object present on the JWT.verify method.')
+
+                    req.user = user;
                     return next()
                 }
 

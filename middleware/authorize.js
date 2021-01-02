@@ -4,15 +4,13 @@ const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 
-//black list all old token when generating new ones.
-
 module.exports = (req, res, next) => {
-    const keyPath = path.resolve(__dirname, "../public/rsa/access_public.pem");
-    const publicKey = fs.readFileSync(keyPath, 'utf8');
-    const accessCookie = req.cookies.access_token;
-    const tokenBody = req.body.token;
+    let keyPath = path.resolve(__dirname, "../public/rsa/access_public.pem");
+    let publicKey = fs.readFileSync(keyPath, 'utf8');
+    let accessCookie = req.cookies.access_token;
+    let tokenBody = req.body.token;
 
-    const opt = {
+    let opt = {
         audience: process.env.AUDIENCE,
         issuer: process.env.ISSUER,
         algorithms: ["RS256"]
