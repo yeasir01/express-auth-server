@@ -9,8 +9,7 @@ module.exports = async (options) => {
     try {
         if (typeof options != "object") throw new Error("The sendMail function requires an object in the callback.")
 
-        let filePath = path.resolve(__dirname, "..", "templates", options.template + ".hbs");
-        let template = fs.readFileSync(filePath, 'utf8');
+        let template = fs.readFileSync(path.resolve(__dirname, "..", "templates", options.template + ".hbs"), 'utf8');
         let compiledTemp = hbs.compile(template);
         let HTMLBody = compiledTemp(options);
 
