@@ -5,53 +5,45 @@ const path = require('path');
 const fs = require('fs');
 
 module.exports = (req, res, next) => {
-    let keyPath = path.resolve(__dirname, "../public/rsa/access_public.pem");
-    let publicKey = fs.readFileSync(keyPath, 'utf8');
-    let accessCookie = req.cookies.access_token;
-    let tokenBody = req.body.token;
+    let pkc = fs.readFileSync(path.resolve(__dirname, "../public/rsa/access_public.pem"), 'utf8');
+    let token = req.cookies.access_token;
 
     let opt = {
         audience: process.env.AUDIENCE,
         issuer: process.env.ISSUER,
         algorithms: ["RS256"]
     };
- 
-    if (accessCookie) {
-        JWT.verify(accessCookie, publicKey, opt, (err, decoded) => {
+
+    if (token) {
+        JWT.verify(token, pkc, opt, (err, decoded) => {
             if (err) {
                 console.log(err)
 
-                res.status(403).json({
+                return res.status(403).json({
                     success: false,
                     errors: [{
                         status: 403,
                         msg: "Invalid or expired token."
                     }]
                 });
-            } else {
-                req.user = decoded;
-                next()
             }
-        })
-    } else if (!accessCookie && tokenBody) {
-        JWT.verify(tokenBody, publicKey, opt, (err, decoded) => {
-            if (err) {
-                console.log(err)
 
-                res.status(403).json({
-                    success: false,
-                    errors: [{
-                        status: 403,
-                        msg: "Invalid or expired token."
-                    }]
-                });
-            } else {
+            if (decoded) {
                 req.user = decoded;
-                next()
+                return next();
             }
+
+            return res.status(422).json({
+                success: false,
+                errors: [{
+                    status: 422,
+                    msg: "Unable to process your request at this time."
+                }]
+            });
+
         })
     } else {
-        res.status(422).json({
+        return res.status(422).json({
             success: false,
             errors: [{
                 status: 422,
