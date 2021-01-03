@@ -19,7 +19,7 @@ module.exports = {
                 });
             }
 
-            if (!user.emailVerifed) {
+            if (!user.emailVerified) {
                 return res.status(400).json({
                     success: false,
                     errors: [{
