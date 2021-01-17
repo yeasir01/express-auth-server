@@ -1,6 +1,6 @@
 "use strict";
 
-const User = require('../models/user');
+const User = require('../models/User');
 const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
@@ -86,9 +86,9 @@ module.exports = {
                     password: req.body.password
                 })
 
-                let user = await new_user.save();
+                let userObj = await new_user.save();
                 
-                req.user = user;
+                req.user = userObj;
                 return next();
             }
         } catch (e) {
@@ -104,11 +104,10 @@ module.exports = {
     },
     verifyRefresh: (req, res, next) => {
         try {
-            let pkcPath = path.resolve(__dirname, "../public/rsa/refresh_public.pem");
-            let pkc = fs.readFileSync(pkcPath, 'utf8');
-            let refreshToken = req.cookies.refresh_token;
+            let pkc = fs.readFileSync(path.resolve(__dirname, "../public/rsa/refresh_public.pem"), 'utf8');
+            let token = req.cookies.refresh_token;
             
-            if (!refreshToken) {
+            if (!token) {
                 return res.status(422).json({
                     success: false,
                     errors: [{
@@ -123,7 +122,7 @@ module.exports = {
                 algorithms: ["RS256"]
             };
             
-            JWT.verify(refreshToken, pkc, opt, async (err, decoded) => {
+            JWT.verify(token, pkc, opt, async (err, decoded) => {
                 if (err) throw err
 
                 if (decoded) {
@@ -153,10 +152,17 @@ module.exports = {
             });
         }
     },
-    test: (req, res) => {
-        res.status(200).json({
-            msg: "That worked, heres your user data.",
-            user: req.user
-        });
+    getProfile: async (req, res) => {
+        try{
+            let id = req.user.sub;
+            let user = await User.findOne({_id: id});
+    
+            res.status(200).json({
+                success: true,
+                user: user
+            });
+        } catch (e) {
+            console.log(e)
+        }
     }
 };

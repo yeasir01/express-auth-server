@@ -23,7 +23,7 @@ module.exports = (req, res, next) => {
                     success: false,
                     errors: [{
                         status: 403,
-                        msg: "Invalid or expired token."
+                        msg: "Access is denied."
                     }]
                 });
             }
@@ -43,11 +43,11 @@ module.exports = (req, res, next) => {
 
         })
     } else {
-        return res.status(422).json({
+        return res.status(403).json({
             success: false,
             errors: [{
-                status: 422,
-                msg: "Invalid or missing access token."
+                status: 403,
+                msg: "Access is denied."
             }]
         });
     }

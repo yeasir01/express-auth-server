@@ -24,7 +24,7 @@ module.exports = async (options) => {
         });
 
         return await transporter.sendMail({
-            from: `${process.env.EMAIL_FROM_DISPLAY} <${process.env.EMAIL_ADDRESS}>`,
+            from: `${options.from || process.env.EMAIL_FROM_DISPLAY} <${process.env.EMAIL_ADDRESS}>`,
             to: options.email,
             subject: options.subject,
             text: options.text,
@@ -37,14 +37,15 @@ module.exports = async (options) => {
 
 }
 
-/* 
-//send mail w/property options
+/* //Format for sending an email
 sendMail({
-    email: "yeasir01@gmail.com",
+    email: "example@gmail.com",
+    from: "Your app team", //Optional
     firstName: "Yeasir",
     lastName: "Hugais",
     subject: "Please verify your email.",
-    text: "This is an optional text",
-    template: "verify-email"
-}); 
-*/
+    text: "This is an optional text", //Optional
+    template: "verify-email",
+    token: "sfvwg45vfd456svseg627639" //passed to template,
+});
+ */

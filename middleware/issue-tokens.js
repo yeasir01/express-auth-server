@@ -57,7 +57,7 @@ module.exports = (req, res) => {
     } catch (e) {
         console.log(e);
 
-        res.status(422).json({
+        return res.status(422).json({
             success: false,
             errors: [{
                 msg: "The server was unable to process your request, please try again later."

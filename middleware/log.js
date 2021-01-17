@@ -1,27 +1,20 @@
 "use strict";
 
-const Event = require('../models/event');
+const Event = require('../models/Event');
 
-module.exports = (obj) => {
-    
+module.exports = async (event) => {
+
     try {
-        if (typeof obj !== "object") {
+        if (typeof event !== "object") {
             throw new Error('You may only log events as an object.')
-        } else if (!obj.level || !obj.source || !obj.description) {
+        } else if (!event.level || !event.source || !event.description) {
             throw new Error('Event must contain a level, source and description.')
         } else {
+            event.debug = JSON.stringify(event.debug);
+            event.geoLocation = JSON.stringify(event.geoLocation);
 
-            obj.debug = JSON.stringify(obj.debug);
-            obj.geoLocation = JSON.stringify(obj.geoLocation);
-
-            let new_event = new Event(obj)
-
-            new_event.save( e => {
-                if (e) {
-                    console.log(e)
-                    throw new Error('An error was thrown while attempting to save an event log.')
-                }
-            });
+            let new_record = new Event(event)
+            return await new_record.save()
         }
     } catch (e) {
         console.log(e);

@@ -31,6 +31,10 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: false
     },
+    profilePic: {
+        type: String,
+        required: false
+    },
     emailVerified: {
         type: Boolean,
         required: true,
@@ -39,6 +43,11 @@ const UserSchema = mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true,
+        required: true
+    },
+    blocked: {
+        type: Boolean,
+        default: false,
         required: true
     }
 },{

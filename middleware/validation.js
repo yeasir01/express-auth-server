@@ -11,7 +11,10 @@ module.exports = {
             if (errors.isEmpty()) {
                 return next()
             } else {
-                return res.status(422).json({success: false, errors: errors.array()});
+                return res.status(422).json({
+                    success: false,
+                    errors: errors.array()
+                });
             }
 
         } catch (e) {
