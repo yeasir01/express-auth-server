@@ -22,11 +22,6 @@ const UserSchema = mongoose.Schema({
         required: true,
         select: false
     },
-    resetToken: {
-        type: String,
-        required: false,
-        select: false
-    },
     geoLocation: {
         type: String,
         required: false
@@ -38,6 +33,16 @@ const UserSchema = mongoose.Schema({
     emailVerified: {
         type: Boolean,
         required: true,
+        default: false
+    },
+    verifyToken: {
+        type: String,
+        required: false,
+        default: false
+    },
+    resetToken: {
+        type: String,
+        required: false,
         default: false
     },
     isActive: {

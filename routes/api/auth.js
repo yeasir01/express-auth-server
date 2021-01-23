@@ -2,7 +2,7 @@
 
 const Router = require('express').Router();
 const issueTokens = require('../../middleware/issue-tokens');
-const {login, register, verifyRefresh, getProfile} = require('../../controllers/auth-controller');
+const {login, register, verifyRefresh, getProfile, verifyEmail} = require('../../controllers/auth-controller');
 const {logSchema, regSchema, validate} = require('../../middleware/validation');
 
 const authorize = require('../../middleware/authorize');
@@ -17,7 +17,13 @@ Router.route('/register')
     // @route  POST api/auth/register
     // @desc   POST Register a user
     // @access Public
-    .post(regSchema(), validate, register, issueTokens);
+    .post(regSchema(), validate, register);
+
+Router.route('/verify-email')
+    // @route  POST api/auth/register
+    // @desc   POST Register a user
+    // @access Public
+    .put(verifyEmail);
 
 Router.route('/profile')
     // @route  GET api/auth/profile

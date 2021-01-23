@@ -4,6 +4,9 @@ const User = require('../models/User');
 const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const {tokens} = require('../config/setup');
+const sendMail = require('../utils/mailer');
+const uuid = require('../utils/gen-uuid');
 
 module.exports = {
     login: async (req, res, next) => {
@@ -23,7 +26,7 @@ module.exports = {
                 return res.status(400).json({
                     success: false,
                     errors: [{
-                        msg: "Your email must be verified before you can sign in."
+                        msg: "Your email must be verified before you can login."
                     }]
                 });
             }
@@ -32,7 +35,7 @@ module.exports = {
                 return res.status(400).json({
                     success: false,
                     errors: [{
-                        msg: "This account has been marked inactive, please contact support."
+                        msg: "This account has been marked inactive, please contact support for assistance."
                     }]
                 });
             }
@@ -75,21 +78,39 @@ module.exports = {
                     success: false,
                     status: 409,
                     errors: [{
-                        msg: "That email is already in use.",
+                        msg: "This email address is already associated with another account.",
                     }]
                 });
             } else {
+                let token = uuid();
+
                 let new_user = new User({
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
                     email: req.body.email,
-                    password: req.body.password
+                    password: req.body.password,
+                    verifyToken: token
                 })
 
-                let userObj = await new_user.save();
-                
-                req.user = userObj;
-                return next();
+                let regUser = await new_user.save();
+
+                sendMail({
+                    email: regUser.email,
+                    subject: "Please verify your email address",
+                    template: "verify-email.hbs",
+                    data: {
+                        token: regUser.verifyToken,
+                        name: `${regUser.firstName} ${regUser.lastName}`
+                    }
+                })
+
+                req.user = regUser;
+
+                return res.status(200).json({
+                    success: true,
+                    msg: "Account created, please verify your email."
+                });
+
             }
         } catch (e) {
             console.log(e);
@@ -117,8 +138,8 @@ module.exports = {
             }
 
             let opt = {
-                aud: process.env.AUDIENCE,
-                iss: process.env.ISSUER,
+                aud: tokens.audience,
+                iss: tokens.issuer,
                 algorithms: ["RS256"]
             };
             
@@ -161,6 +182,53 @@ module.exports = {
                 success: true,
                 user: user
             });
+        } catch (e) {
+            console.log(e)
+        }
+    },
+    verifyEmail: async (req, res) => {
+        try {
+            let token = req.body.token;
+
+            if (!token) {
+                return res.status(422).json({
+                    success: false,
+                    errors: [{
+                        msg: "Missing or invalid token."
+                    }]
+                });
+            }
+
+            let user = await User.findOne({
+                verifyToken: token
+            })
+
+            if (!user) {
+                return res.status(403).json({
+                    success: false,
+                    errors: [{
+                        msg: "Invalid or expired token."
+                    }]
+                });
+            }
+
+            if (user.emailVerified) {
+                return res.status(409).json({
+                    success: false,
+                    errors: [{
+                        msg: "Your email has already been verified, please login."
+                    }]
+                });
+            }
+
+            user.emailVerified = true;
+            await user.save()
+
+            return res.status(200).json({
+                success: true,
+                msg: "Email was sucesfully verified."
+            });
+
         } catch (e) {
             console.log(e)
         }

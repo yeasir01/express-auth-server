@@ -3,14 +3,15 @@
 const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const { tokens } = require('../config/setup');
 
 module.exports = (req, res, next) => {
     let pkc = fs.readFileSync(path.resolve(__dirname, "../public/rsa/access_public.pem"), 'utf8');
     let token = req.cookies.access_token;
 
     let opt = {
-        audience: process.env.AUDIENCE,
-        issuer: process.env.ISSUER,
+        audience: tokens.audience,
+        issuer: tokens.issuer,
         algorithms: ["RS256"]
     };
 

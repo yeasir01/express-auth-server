@@ -3,14 +3,13 @@
 const JWT = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const {tokens} = require('../config/setup');
 //black list all old token when generating new ones.
 module.exports = (req, res) => {
     try {
         let apk = fs.readFileSync(path.resolve(__dirname, "../config/access_private.pem"), 'utf8');
         let rpk = fs.readFileSync(path.resolve(__dirname, "../config/refresh_private.pem"), 'utf8');
         let issuedAt = Math.floor(Date.now() / 1000);
-        let refreshTTL = 30 * 24 * 60 * 60;
-        let accessTTL = 15 * 60;
         let user = req.user;
 
         if (!user) {
@@ -24,16 +23,16 @@ module.exports = (req, res) => {
 
         let accessOpt = {
             algorithm: "RS256",
-            expiresIn: accessTTL,
-            issuer: process.env.ISSUER,
-            audience: process.env.AUDIENCE
+            expiresIn: tokens.accessTTL,
+            issuer: tokens.issuer,
+            audience: tokens.audience
         };
 
         let refreshOpt = {
             algorithm: 'RS256',
-            expiresIn: refreshTTL,
-            issuer: process.env.ISSUER,
-            audience: process.env.AUDIENCE
+            expiresIn: tokens.refreshTTL,
+            issuer: tokens.issuer,
+            audience: tokens.audience
         };
 
         let accessToken = JWT.sign(payload, apk, accessOpt);
@@ -41,12 +40,12 @@ module.exports = (req, res) => {
 
         res.cookie('access_token', accessToken, {
             httpOnly: true,
-            maxAge: accessTTL * 1000
+            maxAge: tokens.accessTTL * 1000
         })
 
         res.cookie('refresh_token', refreshToken, {
             httpOnly: true,
-            maxAge: refreshTTL * 1000
+            maxAge: tokens.refreshTTL * 1000
         })
 
         return res.status(200).json({
